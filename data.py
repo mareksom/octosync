@@ -53,11 +53,20 @@ def ScanDirectory(origin, write_info=None):
                 + GREEN(file_path))
       result[file_path] = {'checksum': checksum.compute(full_path),
                            'timestamp': modification_time}
+  def is_hidden(relative_path):
+    path = relative_path
+    while path:
+      head, tail = os.path.split(path)
+      if tail.startswith('.'):
+        return True
+      path = head
+    return False
   # Iterating over all files and updating them if necessary.
   for subdir, dirs, files in os.walk(origin):
     for file in files:
-      if not file.startswith('.'):
-        update_file(os.path.relpath(os.path.join(subdir, file), origin))
+      relative_path = os.path.relpath(os.path.join(subdir, file), origin)
+      if not is_hidden(relative_path):
+        update_file(relative_path)
   if write_info:
     for old_file in indexed_files.keys():
       if not old_file in result:
